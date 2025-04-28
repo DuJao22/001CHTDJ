@@ -1,0 +1,88 @@
+<html lang="pt-BR">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   WhatsApp
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <style>
+   /* Custom scrollbar for conversation list */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background-color: #2a5d4e;
+      border-radius: 3px;
+    }
+  </style>
+ </head>
+ <body class="bg-white font-sans">
+  <div class="max-w-md mx-auto border border-gray-300 min-h-screen flex flex-col">
+   <!-- Header -->
+   <header class="bg-[#075E54] flex items-center justify-between px-4 py-3">
+    <h1 class="text-white font-bold text-lg select-none">
+     Chat-DJ
+    </h1>
+    <div class="flex space-x-4 text-white text-xl">
+     <button aria-label="Search" class="focus:outline-none">
+      <i class="fas fa-search">
+      </i>
+     </button>
+     <button aria-label="Menu" class="focus:outline-none">
+      <i class="fas fa-ellipsis-v">
+      </i>
+     </button>
+    </div>
+   </header>
+   <!-- Tabs -->
+   <nav class="bg-[#075E54] px-4">
+    <ul class="flex items-center text-sm font-semibold text-[#ECECEC] select-none relative">
+     
+     <li class="flex items-center space-x-1 py-3 border-b-2 border-white ml-4">
+      <button class="flex items-center space-x-1 text-white">
+       <span>
+        CONVERSAS
+       </span>
+       <span class="bg-white text-[#075E54] rounded-full text-xs font-bold w-5 h-5 flex items-center justify-center">
+        9
+       </span>
+      </button>
+     
+    </ul>
+   </nav>
+   <!-- Conversations list -->
+   <main class="flex-1 overflow-y-auto bg-white">
+    <ul>
+     <li class="flex items-center px-4 py-3 border-b border-gray-200">
+      <img alt="Foto de perfil de Xavier, homem com pele morena clara, cabelo curto e escuro, sem camisa, sentado" class="w-12 h-12 rounded-full object-cover" height="48" src="https://storage.googleapis.com/a1aa/image/c40ce6e3-c373-4f33-fd54-554b47a05115.jpg" width="48"/>
+      <div class="flex-1 ml-4">
+       <p class="font-bold text-gray-900 text-base leading-tight">
+        contato 1
+       </p>
+       <p class="text-gray-500 text-sm leading-tight truncate max-w-[220px]">
+        ultima mensagem do contato 
+       </p>
+      </div>
+      <div class="flex flex-col items-end space-y-1">
+       <span class="text-xs text-[#25D366] font-semibold">
+        15:13
+       </span>
+       <span class="bg-[#25D366] text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+        1 <!-- numeros de mensagem nao vistas  --> 
+       </span>
+      </div>
+     </li>
+     
+    </ul>
+   </main>
+   <!-- Floating action button -->
+   <button aria-label="Nova conversa" class="fixed bottom-6 right-6 bg-[#25D366] w-14 h-14 rounded-full flex items-center justify-center shadow-lg text-white text-2xl focus:outline-none" style="box-shadow: 0 4px 8px rgba(37, 211, 102, 0.4);">
+    <i class="fas fa-comment-alt">
+    </i>
+   </button>
+  </div>
+ </body>
+</html>

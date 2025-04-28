@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>Chat UI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+    body { font-family: 'Roboto', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background-color: #2a5d4e; border-radius: 3px; }
+  </style>
+</head>
+
+<body class="bg-white min-h-screen flex justify-center items-center p-4">
+<div class="w-[360px] h-[640px] border border-gray-300 rounded-lg flex flex-col bg-white shadow-md">
+
+  <!-- Header -->
+  <div class="flex items-center bg-[#075E54] px-4 py-3 rounded-t-lg">
+    <button onclick="window.history.back()" class="text-white text-xl mr-3">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <img id="profilePicture" alt="Profile picture" class="rounded-full w-8 h-8 mr-3" src="https://via.placeholder.com/150" />
+    <div class="flex flex-col">
+      <span class="text-white font-semibold text-sm leading-tight">{{ contato }}</span>
+      <span class="text-[#d1d1d1] text-xs leading-tight">Online</span>
+    </div>
+    <div class="ml-auto flex space-x-4 text-white text-lg">
+      <button aria-label="Voice call"><i class="fas fa-phone"></i></button>
+      <button aria-label="Video call"><i class="fas fa-video"></i></button>
+    </div>
+  </div>
+
+  <!-- Chat area -->
+  <div id="chatArea" class="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-[#ECE5DD]"></div>
+
+  <!-- Input area -->
+  <div class="flex items-center bg-[#f0f0f0] px-4 py-3 rounded-b-lg">
+    <input id="inputMessage" class="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#075E54]" placeholder="Digite uma mensagem" type="text" />
+    <button id="sendButton" class="ml-3 bg-[#075E54] rounded-full p-3 text-white text-xl">
+      <i class="fas fa-paper-plane"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Modal para visualizar a foto ampliada (RESPONSIVO) -->
+<div id="photoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+  <div class="relative w-full max-w-3xl max-h-full flex items-center justify-center">
+    <img id="modalImage" src="" alt="Foto ampliada" class="max-h-[90vh] max-w-full object-contain rounded-lg" />
+    <button onclick="fecharModal()" class="absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 rounded-full w-8 h-8 flex items-center justify-center text-white text-xl">
+      &times;
+    </button>
+  </div>
+</div>
+
+<script>
+  function abrirModalFoto() {
+    const profilePic = document.getElementById('profilePicture');
+    const modal = document.getElementById('photoModal');
+    const modalImg = document.getElementById('modalImage');
+    modalImg.src = profilePic.src;
+    modal.classList.remove('hidden');
+  }
+
+  function fecharModal() {
+    const modal = document.getElementById('photoModal');
+    modal.classList.add('hidden');
+  }
+
+  document.getElementById('profilePicture').addEventListener('click', abrirModalFoto);
+
+  const contato = "{{ contato }}";
+  const username = "{{ username }}";
+
+  function carregarMensagens() {
+    fetch(`/get_messages/${contato}`)
+      .then(response => response.json())
+      .then(data => {
+        const chatArea = document.getElementById('chatArea');
+        chatArea.innerHTML = '';
+        data.forEach(([sender, text, time]) => {
+          const enviada = sender === username;
+          const div = document.createElement('div');
+          div.innerHTML = `
+            <div class="flex flex-col ${enviada ? 'items-end' : 'items-start'}">
+              <div class="max-w-[70%] ${enviada ? 'bg-[#dcf8c6]' : 'bg-white'} rounded-lg p-2 text-xs text-gray-900 relative">
+                <span class="block">${text}</span>
+              </div>
+              <div class="flex items-center text-[10px] text-gray-500 mt-1 ${enviada ? 'justify-end' : ''}">
+                <span>${new Date(time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                ${enviada ? '<i class="fas fa-check-double text-[#4fc3f7] ml-1"></i>' : ''}
+              </div>
+            </div>
+          `;
+          chatArea.appendChild(div);
+        });
+        chatArea.scrollTop = chatArea.scrollHeight;
+      });
+  }
+
+  function carregarFotoPerfil() {
+    fetch(`/foto_usuario/${contato}`)
+      .then(response => response.json())
+      .then(data => {
+        const img = document.getElementById('profilePicture');
+        img.src = data.photo ? `/static/uploads/${data.photo}` : 'https://via.placeholder.com/150';
+      });
+  }
+
+  document.getElementById('sendButton').addEventListener('click', () => {
+    const input = document.getElementById('inputMessage');
+    const texto = input.value.trim();
+    if (texto !== '') {
+      fetch('/send_message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `message=${encodeURIComponent(texto)}&receiver=${encodeURIComponent(contato)}`
+      }).then(response => {
+        if (response.ok) {
+          input.value = '';
+          carregarMensagens();
+        }
+      });
+    }
+  });
+
+  setInterval(carregarMensagens, 2000);
+  carregarMensagens();
+  carregarFotoPerfil();
+</script>
+
+<!-- Scripts para chamada de voz (NOVO) -->
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+<script>
+const socket = io();
+const myUsername = "{{ username }}";
+const contactUsername = "{{ contato }}";
+const roomName = [myUsername, contactUsername].sort().join('-');
+socket.emit('join', { room: roomName });
+
+let peerConnection;
+const servers = {
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+};
+
+function iniciarChamada() {
+  peerConnection = new RTCPeerConnection(servers);
+
+  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+    .then(stream => {
+      stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+    });
+
+  peerConnection.onicecandidate = event => {
+    if (event.candidate) {
+      socket.emit('signal', {
+        type: 'candidate',
+        candidate: event.candidate,
+        room: roomName
+      });
+    }
+  };
+
+  peerConnection.ontrack = event => {
+    const remoteAudio = new Audio();
+    remoteAudio.srcObject = event.streams[0];
+    remoteAudio.play();
+  };
+
+  peerConnection.createOffer()
+    .then(offer => peerConnection.setLocalDescription(offer))
+    .then(() => {
+      socket.emit('signal', {
+        type: 'offer',
+        offer: peerConnection.localDescription,
+        room: roomName
+      });
+    });
+}
+
+socket.on('signal', async (data) => {
+  if (data.type === 'offer') {
+    peerConnection = new RTCPeerConnection(servers);
+
+    navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+      .then(stream => {
+        stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+      });
+
+    peerConnection.onicecandidate = event => {
+      if (event.candidate) {
+        socket.emit('signal', {
+          type: 'candidate',
+          candidate: event.candidate,
+          room: roomName
+        });
+      }
+    };
+
+    peerConnection.ontrack = event => {
+      const remoteAudio = new Audio();
+      remoteAudio.srcObject = event.streams[0];
+      remoteAudio.play();
+    };
+
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+
+    socket.emit('signal', {
+      type: 'answer',
+      answer: peerConnection.localDescription,
+      room: roomName
+    });
+  }
+
+  if (data.type === 'answer') {
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+  }
+
+  if (data.type === 'candidate') {
+    if (peerConnection) {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+    }
+  }
+});
+
+document.querySelector('[aria-label="Voice call"]').addEventListener('click', () => {
+  iniciarChamada();
+});
+</script>
+</body>
+</html>
